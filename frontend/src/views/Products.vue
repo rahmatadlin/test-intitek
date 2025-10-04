@@ -766,8 +766,8 @@ th:nth-child(7) {
 }
 
 th:nth-child(8) {
-  width: 180px; /* Actions */
-  min-width: 180px;
+  width: 150px; /* Actions (icon-only) */
+  text-align: center;
 }
 
 td {

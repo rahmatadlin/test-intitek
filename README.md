@@ -9,6 +9,8 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 - **Product Management**: Full CRUD operations for inventory items
   - Icon-based action buttons (barcode, edit, delete)
   - Hover effects for better UX
+  - Confirmation modal for delete operations
+  - Clean table header without "Actions" label
 - **Dashboard**: Real-time statistics and insights
   - Total products count
   - Total stock quantity
