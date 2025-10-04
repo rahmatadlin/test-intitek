@@ -16,6 +16,9 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
   - Total stock quantity
   - Low stock alerts
   - Low stock products list
+  - Horizontal bar chart showing top 10 products by quantity
+  - Color-coded bars based on stock status (green, orange, red)
+  - Interactive tooltips with product details
 - **Advanced Search**: Real-time search functionality
   - Search by product name
   - Search by SKU
@@ -65,6 +68,7 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 - **State Management**: Pinia
 - **HTTP Client**: Axios
 - **Routing**: Vue Router
+- **Charts**: Chart.js 4
 
 ## 📋 Prerequisites
 
@@ -574,6 +578,24 @@ Products **automatically** update their status based on quantity. You don't need
 - **In Stock**: Quantity > 5
 
 This logic is implemented in the backend (`models/product.go`) and automatically applied when creating or updating products. The status field is **read-only** from the API perspective.
+
+## 📸 Screenshots
+
+![Screenshot 1](screenshots/Screenshot%20from%202025-10-04%2009-34-33.png)
+
+![Screenshot 2](screenshots/Screenshot%20from%202025-10-04%2009-34-42.png)
+
+![Screenshot 3](screenshots/Screenshot%20from%202025-10-04%2009-34-50.png)
+
+![Screenshot 4](screenshots/Screenshot%20from%202025-10-04%2009-34-57.png)
+
+![Screenshot 5](screenshots/Screenshot%20from%202025-10-04%2009-35-16.png)
+
+![Screenshot 6](screenshots/Screenshot%20from%202025-10-04%2009-35-44.png)
+
+![Screenshot 7](screenshots/Screenshot%20from%202025-10-04%2009-38-23.png)
+
+![Screenshot 8](screenshots/Screenshot%20from%202025-10-04%2009-42-49.png)
 
 ## 🐛 Troubleshooting
 

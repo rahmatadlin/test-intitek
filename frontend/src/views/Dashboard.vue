@@ -32,6 +32,38 @@
         </div>
       </div>
 
+      <!-- Inventory Chart -->
+      <div class="card mt-4">
+        <h2 class="section-title">Top 10 Products by Quantity</h2>
+        <p class="section-subtitle">
+          Products are color-coded by status:
+          <span class="legend-item">
+            <span
+              class="legend-dot"
+              style="background: rgb(16, 185, 129)"
+            ></span>
+            In Stock
+          </span>
+          <span class="legend-item">
+            <span
+              class="legend-dot"
+              style="background: rgb(245, 158, 11)"
+            ></span>
+            Low Stock
+          </span>
+          <span class="legend-item">
+            <span
+              class="legend-dot"
+              style="background: rgb(239, 68, 68)"
+            ></span>
+            Out of Stock
+          </span>
+        </p>
+        <div class="chart-wrapper">
+          <BarChart :data="chartData" :horizontal="true" />
+        </div>
+      </div>
+
       <!-- Low Stock Products -->
       <div class="card mt-4">
         <h2 class="section-title">Low Stock Products</h2>
@@ -78,9 +110,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { productService } from "../services/productService";
 import { useToast } from "../composables/useToast";
+import BarChart from "../components/BarChart.vue";
 
 const toast = useToast();
 const stats = ref({
@@ -90,7 +123,47 @@ const stats = ref({
   low_stock_products: [],
 });
 
+const allProducts = ref([]);
 const loading = ref(true);
+
+// Computed property for chart data
+const chartData = computed(() => {
+  // Sort products by quantity (descending) and take top 10
+  const sortedProducts = [...allProducts.value]
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 10);
+
+  // Extract product names and quantities
+  const productNames = sortedProducts.map((p) => p.name);
+  const quantities = sortedProducts.map((p) => p.quantity);
+
+  // Color based on status
+  const backgroundColors = sortedProducts.map((p) => {
+    if (p.status === "in_stock") return "rgba(16, 185, 129, 0.8)"; // Green
+    if (p.status === "low_stock") return "rgba(245, 158, 11, 0.8)"; // Orange
+    return "rgba(239, 68, 68, 0.8)"; // Red for out_of_stock
+  });
+
+  const borderColors = sortedProducts.map((p) => {
+    if (p.status === "in_stock") return "rgb(16, 185, 129)";
+    if (p.status === "low_stock") return "rgb(245, 158, 11)";
+    return "rgb(239, 68, 68)";
+  });
+
+  return {
+    labels: productNames,
+    datasets: [
+      {
+        label: "Quantity",
+        data: quantities,
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
+        borderWidth: 2,
+        borderRadius: 6,
+      },
+    ],
+  };
+});
 
 const fetchStats = async () => {
   try {
@@ -104,8 +177,18 @@ const fetchStats = async () => {
   }
 };
 
+const fetchAllProducts = async () => {
+  try {
+    const response = await productService.getProducts();
+    allProducts.value = response.data.data || [];
+  } catch (error) {
+    console.error("Error fetching products:", error);
+  }
+};
+
 onMounted(() => {
   fetchStats();
+  fetchAllProducts();
 });
 </script>
 
@@ -165,7 +248,31 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
 }
 
 .empty-state {
@@ -182,7 +289,24 @@ code {
   font-size: 0.875rem;
 }
 
+.chart-wrapper {
+  height: 500px;
+  padding: 1rem;
+}
+
 .mt-4 {
   margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .chart-wrapper {
+    height: 450px;
+  }
+
+  .section-subtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 }
 </style>
