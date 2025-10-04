@@ -41,6 +41,7 @@ cp env.example .env
 # Update DB_PASSWORD with your MySQL password
 
 # Install dependencies
+go mod tidy
 go mod download
 
 # Run the backend

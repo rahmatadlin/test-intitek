@@ -205,7 +205,7 @@ func GenerateBarcode(c *gin.Context) {
 	}
 
 	// Scale barcode to 200x100 pixels
-	barcodeImg, err = barcode.Scale(barcodeImg, 200, 100)
+	scaledBarcode, err := barcode.Scale(barcodeImg, 200, 100)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scale barcode"})
 		return
@@ -213,7 +213,7 @@ func GenerateBarcode(c *gin.Context) {
 
 	// Encode to PNG
 	buffer := new(bytes.Buffer)
-	if err := png.Encode(buffer, barcodeImg); err != nil {
+	if err := png.Encode(buffer, scaledBarcode); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to encode barcode"})
 		return
 	}

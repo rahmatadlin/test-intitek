@@ -97,6 +97,7 @@ PORT=8080
 Install Go dependencies:
 
 ```bash
+go mod tidy
 go mod download
 ```
 
