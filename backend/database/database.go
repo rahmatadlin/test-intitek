@@ -40,6 +40,9 @@ func ConnectDatabase(cfg *config.Config) error {
 	// Create default admin user if no users exist
 	createDefaultUser()
 
+	// Seed sample products
+	SeedProducts()
+
 	return nil
 }
 

@@ -80,7 +80,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { productService } from "../services/productService";
+import { useToast } from "../composables/useToast";
 
+const toast = useToast();
 const stats = ref({
   total_products: 0,
   total_stock: 0,
@@ -96,6 +98,7 @@ const fetchStats = async () => {
     stats.value = response.data;
   } catch (error) {
     console.error("Error fetching stats:", error);
+    toast.error("Failed to load dashboard statistics");
   } finally {
     loading.value = false;
   }

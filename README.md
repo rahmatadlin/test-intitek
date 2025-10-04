@@ -7,12 +7,35 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 ### Core Features
 
 - **Product Management**: Full CRUD operations for inventory items
+  - Icon-based action buttons (barcode, edit, delete)
+  - Hover effects for better UX
 - **Dashboard**: Real-time statistics and insights
   - Total products count
   - Total stock quantity
   - Low stock alerts
   - Low stock products list
+- **Advanced Search**: Real-time search functionality
+  - Search by product name
+  - Search by SKU
+  - Search by location
+  - Instant results as you type
 - **Filtering**: Filter products by status and low stock items
+- **Sortable Table**: Click any column header to sort
+  - Sort by Name, SKU, Quantity, Location, Status, or Created Date
+  - Toggle between ascending/descending order
+  - Visual indicators (↑/↓) for current sort
+  - Default: sorted by Created Date (newest first)
+  - Sequential numbering (No.) regardless of sorting
+- **Pagination**: Navigate through large product lists
+  - Adjustable items per page (10, 25, 50, 100)
+  - Page number navigation
+  - First, previous, next, last controls
+  - Shows current page info (e.g., "Showing 1 to 10 of 45")
+- **Toast Notifications**: Real-time feedback for all user actions
+  - Success notifications (green)
+  - Error notifications (red)
+  - Info notifications (blue)
+  - Warning notifications (orange)
 - **Responsive UI**: Modern, clean interface with mobile support
 
 ### Bonus Features
@@ -273,8 +296,7 @@ Content-Type: application/json
   "name": "Laptop Dell XPS 15",
   "sku": "LAPTOP-001",
   "quantity": 15,
-  "location": "Warehouse A, Shelf 12",
-  "status": "in_stock"
+  "location": "Warehouse A, Shelf 12"
 }
 ```
 
@@ -284,7 +306,8 @@ Content-Type: application/json
 - `sku`: Required, unique, string
 - `quantity`: Required, integer, minimum 0
 - `location`: Required, string
-- `status`: Required, enum (`in_stock`, `low_stock`, `out_of_stock`)
+
+**Note:** Status is automatically generated based on quantity and cannot be manually set.
 
 **Response (201 Created):**
 
@@ -313,10 +336,11 @@ Content-Type: application/json
   "name": "Laptop Dell XPS 15",
   "sku": "LAPTOP-001",
   "quantity": 8,
-  "location": "Warehouse B, Shelf 5",
-  "status": "low_stock"
+  "location": "Warehouse B, Shelf 5"
 }
 ```
+
+**Note:** Status will be automatically updated based on the new quantity.
 
 **Response (200 OK):**
 
@@ -541,13 +565,13 @@ test-intitek/
 
 ## 🔧 Product Status Logic
 
-Products automatically update their status based on quantity:
+Products **automatically** update their status based on quantity. You don't need to manually set the status - it's calculated automatically!
 
-- **In Stock**: Quantity > 10
-- **Low Stock**: Quantity ≤ 10 and > 0
 - **Out of Stock**: Quantity = 0
+- **Low Stock**: Quantity ≥ 1 and ≤ 5
+- **In Stock**: Quantity > 5
 
-This logic is implemented in the backend (`models/product.go`) and automatically applied when creating or updating products.
+This logic is implemented in the backend (`models/product.go`) and automatically applied when creating or updating products. The status field is **read-only** from the API perspective.
 
 ## 🐛 Troubleshooting
 

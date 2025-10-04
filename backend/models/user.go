@@ -9,9 +9,9 @@ import (
 // User represents an authenticated user
 type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
-	Username  string    `json:"username" gorm:"uniqueIndex;not null"`
-	Email     string    `json:"email" gorm:"uniqueIndex;not null"`
-	Password  string    `json:"-" gorm:"not null"` // - means this field won't be included in JSON
+	Username  string    `json:"username" gorm:"type:varchar(100);uniqueIndex;not null"`
+	Email     string    `json:"email" gorm:"type:varchar(255);uniqueIndex;not null"`
+	Password  string    `json:"-" gorm:"type:varchar(255);not null"` // - means this field won't be included in JSON
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

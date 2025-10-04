@@ -57,9 +57,11 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { useToast } from "../composables/useToast";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const credentials = ref({
   username: "",
@@ -75,10 +77,13 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(credentials.value);
+    toast.success("Login successful! Welcome back.");
     router.push("/");
   } catch (err) {
-    error.value =
+    const errorMsg =
       err.response?.data?.error || "Failed to login. Please try again.";
+    error.value = errorMsg;
+    toast.error(errorMsg);
   } finally {
     loading.value = false;
   }

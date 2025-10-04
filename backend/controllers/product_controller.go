@@ -91,9 +91,8 @@ func UpdateProduct(c *gin.Context) {
 	product.SKU = updateData.SKU
 	product.Quantity = updateData.Quantity
 	product.Location = updateData.Location
-	product.Status = updateData.Status
 
-	// Auto-update status based on quantity
+	// Auto-update status based on quantity (not from user input)
 	product.UpdateStatus()
 
 	if err := database.DB.Save(&product).Error; err != nil {
