@@ -70,6 +70,11 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 - **Routing**: Vue Router
 - **Charts**: Chart.js 4
 
+### Desktop App
+
+- **Desktop Framework**: Tauri 2.0
+- **Platform**: Windows, macOS, Linux
+
 ## 📋 Prerequisites
 
 Before running this application, ensure you have:
@@ -78,6 +83,9 @@ Before running this application, ensure you have:
 - **Node.js** 18.x or higher ([Download](https://nodejs.org/))
 - **MySQL** 8.0 or higher ([Download](https://dev.mysql.com/downloads/))
 - **Git** (for cloning the repository)
+
+**Untuk Desktop App (Tauri):**
+- **Rust** 1.70 or higher ([Download](https://www.rust-lang.org/tools/install))
 
 ## 🚀 Getting Started
 
@@ -167,12 +175,21 @@ The frontend will start on `http://localhost:5173`
 
 ### 5. Access the Application
 
+**Web Application:**
 Open your browser and visit: `http://localhost:5173`
+
+**Desktop Application (Tauri):**
+```bash
+cd frontend
+npm run tauri:dev
+```
 
 Login with the default credentials:
 
 - **Username**: `admin`
 - **Password**: `admin123`
+
+> **Note**: Untuk desktop app, pastikan backend server sudah berjalan di `http://localhost:8080` sebelum menjalankan Tauri.
 
 ## 📡 API Documentation
 
@@ -629,7 +646,7 @@ go build -o warehouse-api main.go
 ./warehouse-api
 ```
 
-### Frontend
+### Frontend (Web)
 
 ```bash
 cd frontend
@@ -637,6 +654,20 @@ npm run build
 ```
 
 The built files will be in the `frontend/dist` directory. Serve them using any static file server.
+
+### Desktop App (Tauri)
+
+```bash
+cd frontend
+npm run tauri:build
+```
+
+File hasil build akan berada di `frontend/src-tauri/target/release/`:
+- **Windows**: `.exe` atau `.msi` installer
+- **macOS**: `.app` atau `.dmg`
+- **Linux**: executable atau `.deb`/`.AppImage`
+
+> **Note**: Pastikan Rust sudah terinstall sebelum build desktop app. Lihat [TAURI_SETUP.md](frontend/src-tauri/TAURI_SETUP.md) untuk informasi lebih lanjut.
 
 ## 📝 Environment Variables
 
