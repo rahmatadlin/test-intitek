@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"warehouse-management/config"
 	"warehouse-management/database"
 	"warehouse-management/routes"
@@ -11,6 +12,21 @@ import (
 )
 
 func main() {
+	// Check if running as Wails app
+	// Wails sets certain environment variables when running
+	// The simplest way is to check if wails.json exists in current directory
+	// Or we can use a build tag approach, but for simplicity, we'll check for wails.json
+	if _, err := os.Stat("wails.json"); err == nil {
+		// Run as Wails desktop app
+		RunWailsApp()
+		return
+	}
+
+	// Otherwise, run as normal web server
+	runWebServer()
+}
+
+func runWebServer() {
 	// Load configuration
 	cfg := config.LoadConfig()
 
@@ -37,7 +53,7 @@ func main() {
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Warehouse Management API is running",
 		})
 	})

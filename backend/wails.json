@@ -1,0 +1,23 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "warehouse-management",
+  "outputfilename": "warehouse-management",
+  "frontend": {
+    "dir": "../frontend/dist",
+    "install": "",
+    "build": "",
+    "bridge": "",
+    "serve": ""
+  },
+  "author": {
+    "name": "Warehouse Management",
+    "email": ""
+  },
+  "info": {
+    "productName": "Warehouse Management System",
+    "productVersion": "1.0.0",
+    "copyright": "",
+    "comments": "Warehouse Management Desktop Application"
+  }
+}
+
