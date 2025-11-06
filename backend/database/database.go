@@ -51,21 +51,33 @@ func createDefaultUser() {
 	var count int64
 	DB.Model(&models.User{}).Count(&count)
 
+	log.Printf("Checking for existing users... Found: %d users", count)
+
 	if count == 0 {
+		log.Println("No users found, creating default admin user...")
 		user := models.User{
 			Username: "admin",
 			Email:    "admin@warehouse.com",
 		}
 		if err := user.HashPassword("admin123"); err != nil {
-			log.Println("Error hashing default password:", err)
+			log.Printf("ERROR: Failed to hash default password: %v", err)
 			return
 		}
 
 		if err := DB.Create(&user).Error; err != nil {
-			log.Println("Error creating default user:", err)
+			log.Printf("ERROR: Failed to create default user: %v", err)
 		} else {
-			log.Println("Default admin user created (username: admin, password: admin123)")
+			log.Printf("SUCCESS: Default admin user created (username: admin, password: admin123)")
+			log.Printf("User ID: %d, Username: %s, Email: %s", user.ID, user.Username, user.Email)
+		}
+	} else {
+		log.Printf("Users already exist (%d), skipping default user creation", count)
+		// Log existing users for debugging
+		var users []models.User
+		if err := DB.Find(&users).Error; err == nil {
+			for _, u := range users {
+				log.Printf("Existing user: ID=%d, Username=%s, Email=%s", u.ID, u.Username, u.Email)
+			}
 		}
 	}
 }
-

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 
 const routes = [
@@ -18,7 +18,7 @@ const routes = [
         component: () => import("../views/Dashboard.vue"),
       },
       {
-        path: "/products",
+        path: "products",
         name: "Products",
         component: () => import("../views/Products.vue"),
       },
@@ -26,8 +26,10 @@ const routes = [
   },
 ];
 
+// Use hash history for Wails compatibility
+// Hash history works better in Wails desktop app
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 

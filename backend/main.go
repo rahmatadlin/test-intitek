@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"warehouse-management/config"
 	"warehouse-management/database"
 	"warehouse-management/routes"
@@ -13,10 +14,41 @@ import (
 
 func main() {
 	// Check if running as Wails app
-	// Wails sets certain environment variables when running
-	// The simplest way is to check if wails.json exists in current directory
-	// Or we can use a build tag approach, but for simplicity, we'll check for wails.json
+	// Check multiple ways to detect Wails mode:
+	// 1. Check for wails.json in current directory or executable directory
+	// 2. Check for environment variable set by Wails
+	// 3. Check if executable is in build/bin directory (production build)
+	isWailsMode := false
+
+	// Check wails.json in current directory
 	if _, err := os.Stat("wails.json"); err == nil {
+		isWailsMode = true
+	} else {
+		// Check in executable directory
+		if exePath, err := os.Executable(); err == nil {
+			exeDir := filepath.Dir(exePath)
+			if _, err := os.Stat(filepath.Join(exeDir, "wails.json")); err == nil {
+				isWailsMode = true
+			} else if _, err := os.Stat(filepath.Join(exeDir, "..", "wails.json")); err == nil {
+				isWailsMode = true
+			}
+		}
+	}
+
+	// Check environment variable
+	if os.Getenv("WAILS_MODE") != "" {
+		isWailsMode = true
+	}
+
+	// Check if running from build directory (production executable)
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		if filepath.Base(exeDir) == "bin" || filepath.Base(exeDir) == "build" {
+			isWailsMode = true
+		}
+	}
+
+	if isWailsMode {
 		// Run as Wails desktop app
 		RunWailsApp()
 		return
@@ -64,4 +96,3 @@ func runWebServer() {
 		log.Fatal("Failed to start server:", err)
 	}
 }
-

@@ -17,10 +17,12 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
 
-// Untuk production build, kita akan menggunakan embed dari folder yang sudah di-copy
-// Atau kita bisa menggunakan approach yang berbeda - load dari file system
-// Tapi karena embed tidak bisa pakai .., kita buat folder di dalam backend
-// Untuk sementara, kita gunakan empty embed dan akan load dari file system
+// Embed frontend dist dari folder frontend-dist (harus di-copy sebelum build)
+// Untuk build production:
+// 1. Copy folder frontend/dist ke backend/frontend-dist
+// 2. Build dengan wails build
+//
+//go:embed all:frontend-dist
 var assets embed.FS
 
 // App struct
@@ -36,8 +38,20 @@ func NewApp() *App {
 	cfg := config.LoadConfig()
 
 	// Connect to database
+	// For Wails app, we need database to work properly
 	if err := database.ConnectDatabase(cfg); err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Printf("ERROR: Failed to connect to database: %v", err)
+		log.Printf("Please check:")
+		log.Printf("  1. MySQL server is running")
+		log.Printf("  2. Database '%s' exists", cfg.DBName)
+		log.Printf("  3. Credentials in .env file are correct")
+		log.Printf("  4. DB_HOST=%s, DB_PORT=%s, DB_USER=%s", cfg.DBHost, cfg.DBPort, cfg.DBUser)
+		// Return error but don't fatal - let Wails start and show error in UI
+		// Database operations will fail but at least app starts
+		log.Printf("Application will start but database features will not work")
+	} else {
+		log.Printf("Database connected successfully")
+		log.Printf("Database: %s@%s:%s/%s", cfg.DBUser, cfg.DBHost, cfg.DBPort, cfg.DBName)
 	}
 
 	// Initialize Gin router
@@ -80,7 +94,8 @@ func (a *App) OnStartup(ctx context.Context) {
 		if port == "" {
 			port = "8080"
 		}
-		log.Printf("API Server starting on port %s...", port)
+		log.Printf("API Server starting on http://localhost:%s...", port)
+		log.Printf("API endpoints available at http://localhost:%s/api", port)
 		if err := a.router.Run(":" + port); err != nil {
 			log.Printf("Failed to start API server: %v", err)
 		}
@@ -104,6 +119,10 @@ func (a *App) OnShutdown(ctx context.Context) {
 
 // RunWailsApp runs the Wails application
 func RunWailsApp() {
+	// Setup logging first
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.Println("Starting Wails application...")
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -118,19 +137,67 @@ func RunWailsApp() {
 		}
 	}
 
-	// Check if path exists, if not use empty embed (will use dev mode)
+	// Check if we have embedded assets (production build)
+	// Try to check if assets is not empty by checking for index.html
 	assetServerOptions := &assetserver.Options{}
-	if _, err := os.Stat(frontendDistPath); err == nil {
-		// Use file system path for development
-		assetServerOptions.Assets = os.DirFS(frontendDistPath)
-	} else {
-		// Use embed for production (will be empty if not embedded)
+
+	// Try to read from embedded assets first
+	_, errEmbed := assets.Open("index.html")
+	if errEmbed == nil {
+		// Use embedded assets (production build)
 		assetServerOptions.Assets = assets
-		log.Printf("Warning: Frontend dist not found at %s, using embedded assets", frontendDistPath)
+		log.Println("Using embedded assets (production mode)")
+	} else {
+		log.Printf("Embedded assets not found, error: %v", errEmbed)
+		// Try file system path for development
+		if _, err := os.Stat(frontendDistPath); err == nil {
+			assetServerOptions.Assets = os.DirFS(frontendDistPath)
+			log.Printf("Using file system assets from %s (development mode)", frontendDistPath)
+		} else {
+			// Fallback: try frontend-dist folder in backend
+			// For production, try relative to executable
+			localFrontendDist := "frontend-dist"
+
+			// Also check relative to executable location
+			if exePath, err := os.Executable(); err == nil {
+				exeDir := filepath.Dir(exePath)
+				// Try multiple locations
+				possiblePaths := []string{
+					localFrontendDist,
+					filepath.Join(exeDir, "frontend-dist"),
+					filepath.Join(exeDir, "..", "frontend-dist"),
+					filepath.Join(exeDir, "..", "..", "frontend-dist"),
+				}
+
+				found := false
+				for _, path := range possiblePaths {
+					if _, err := os.Stat(path); err == nil {
+						assetServerOptions.Assets = os.DirFS(path)
+						log.Printf("Using local frontend-dist folder from %s", path)
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					// Last resort: use embedded assets anyway
+					assetServerOptions.Assets = assets
+					log.Printf("Warning: Frontend dist not found in any location, using embedded assets")
+					log.Printf("Tried paths: %v", possiblePaths)
+				}
+			} else if _, err := os.Stat(localFrontendDist); err == nil {
+				assetServerOptions.Assets = os.DirFS(localFrontendDist)
+				log.Printf("Using local frontend-dist folder (development mode)")
+			} else {
+				// Last resort: use empty embed (will show error)
+				assetServerOptions.Assets = assets
+				log.Printf("Warning: Frontend dist not found, application may not work correctly")
+			}
+		}
 	}
 
 	// Create application with options
-	err := wails.Run(&options.App{
+	appOptions := &options.App{
 		Title:            "Warehouse Management System",
 		Width:            1280,
 		Height:           800,
@@ -140,9 +207,15 @@ func RunWailsApp() {
 		OnDomReady:       app.OnDomReady,
 		OnBeforeClose:    app.OnBeforeClose,
 		OnShutdown:       app.OnShutdown,
-	})
+	}
+
+	log.Println("Running Wails application...")
+	err := wails.Run(appOptions)
 
 	if err != nil {
-		log.Fatal("Error:", err)
+		log.Printf("Fatal error starting Wails application: %v", err)
+		// Show error message box on Windows
+		// For now, just log to console
+		os.Exit(1)
 	}
 }

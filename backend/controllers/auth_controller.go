@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"time"
 	"warehouse-management/config"
@@ -34,16 +35,28 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	// Check if database is connected
+	if database.DB == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database not connected"})
+		return
+	}
+
 	var user models.User
 	if err := database.DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
+		log.Printf("Login failed: User '%s' not found - %v", req.Username, err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
+	log.Printf("User found: ID=%d, Username=%s, Email=%s", user.ID, user.Username, user.Email)
+
 	if err := user.CheckPassword(req.Password); err != nil {
+		log.Printf("Login failed: Password mismatch for user '%s'", req.Username)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
+
+	log.Printf("Login successful: User '%s' authenticated", req.Username)
 
 	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -100,4 +113,3 @@ func (ac *AuthController) Register(c *gin.Context) {
 		},
 	})
 }
-

@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -18,9 +19,41 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	// Load .env file if it exists
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
+	// Try to load .env file from multiple locations
+	// 1. Current directory
+	// 2. Executable directory (for production build)
+	// 3. Parent directories (for production build in build/bin)
+	envPaths := []string{
+		".env",
+		"../.env",
+		"../../.env",
+		"../../../.env",
+	}
+	
+	// Also try relative to executable
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		envPaths = append(envPaths,
+			filepath.Join(exeDir, ".env"),
+			filepath.Join(exeDir, "..", ".env"),
+			filepath.Join(exeDir, "..", "..", ".env"),
+			filepath.Join(exeDir, "..", "..", "..", ".env"),
+		)
+	}
+	
+	// Try each path
+	loaded := false
+	for _, envPath := range envPaths {
+		if err := godotenv.Load(envPath); err == nil {
+			log.Printf("Loaded .env file from: %s", envPath)
+			loaded = true
+			break
+		}
+	}
+	
+	if !loaded {
+		log.Println("No .env file found in any location, using environment variables")
+		log.Println("Tried paths:", envPaths)
 	}
 
 	return &Config{
