@@ -57,7 +57,7 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 - **Language**: Go 1.21+
 - **Framework**: Gin (HTTP web framework)
 - **ORM**: GORM
-- **Database**: MySQL
+- **Database**: SQLite
 - **Authentication**: JWT (golang-jwt/jwt)
 - **Barcode**: boombuler/barcode
 
@@ -81,7 +81,6 @@ Before running this application, ensure you have:
 
 - **Go** 1.21 or higher ([Download](https://golang.org/dl/))
 - **Node.js** 18.x or higher ([Download](https://nodejs.org/))
-- **MySQL** 8.0 or higher ([Download](https://dev.mysql.com/downloads/))
 - **Git** (for cloning the repository)
 
 **Untuk Desktop App (Tauri):**
@@ -96,15 +95,7 @@ git clone <repository-url>
 cd test-intitek
 ```
 
-### 2. Database Setup
-
-Create a MySQL database:
-
-```sql
-CREATE DATABASE warehouse_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 3. Backend Setup
+### 2. Backend Setup
 
 Navigate to the backend directory:
 
@@ -112,24 +103,16 @@ Navigate to the backend directory:
 cd backend
 ```
 
-Create a `.env` file (copy from `env.example`):
+Create a `.env` file (optional, SQLite akan menggunakan default jika tidak ada):
 
 ```bash
-cp env.example .env
-```
-
-Edit `.env` with your MySQL credentials:
-
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=warehouse_db
-
+# .env file (optional)
+DB_PATH=warehouse.db
 JWT_SECRET=your-secret-key-change-this-in-production
 PORT=8080
 ```
+
+**Catatan**: SQLite tidak memerlukan setup database terpisah. File database akan dibuat otomatis saat aplikasi pertama kali dijalankan.
 
 Install Go dependencies:
 

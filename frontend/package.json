@@ -1,6 +1,6 @@
 {
   "name": "warehouse-management-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,13 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "version:patch": "node scripts/version-bump.js patch",
+    "version:minor": "node scripts/version-bump.js minor",
+    "version:major": "node scripts/version-bump.js major",
+    "build:patch": "npm run version:patch && tauri build",
+    "build:minor": "npm run version:minor && tauri build",
+    "build:major": "npm run version:major && tauri build"
   },
   "dependencies": {
     "vue": "^3.4.0",
