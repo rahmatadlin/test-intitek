@@ -1,4 +1,5 @@
 import axios from "axios";
+import logger from "../utils/logger";
 
 // Detect if running in Tauri
 const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -20,27 +21,40 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log API request
+    logger.apiRequest(config.method.toUpperCase(), config.url, config.data);
+    
     return config;
   },
   (error) => {
+    logger.apiError('REQUEST', error.config?.url || 'unknown', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful API response
+    logger.apiResponse(
+      response.config.method.toUpperCase(),
+      response.config.url,
+      response.status,
+      response.data
+    );
+    return response;
+  },
   (error) => {
-    // Debug logging for Tauri
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
-      console.error("API Error:", error);
-      console.error("Error message:", error.message);
-      console.error("Error response:", error.response);
-      console.error("Request URL:", error.config?.url);
-      console.error("Request baseURL:", error.config?.baseURL);
-    }
+    // Log API error
+    logger.apiError(
+      error.config?.method?.toUpperCase() || 'UNKNOWN',
+      error.config?.url || 'unknown',
+      error
+    );
     
     if (error.response?.status === 401) {
+      logger.warn("Unauthorized - redirecting to login");
       localStorage.removeItem("token");
       // Navigate to login page
       window.location.href = "/login";
