@@ -1,20 +1,17 @@
+# Logs
+logs/
+*.log
+
 # Environment variables
 .env
 
-# Binaries
-warehouse-api
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Build output
+build/
+frontend-dist/
 
-# Test binary
-*.test
-
-# Output of the go coverage tool
-*.out
-
-# Go workspace file
-go.work
-
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

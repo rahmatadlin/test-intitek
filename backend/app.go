@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"warehouse-management/config"
 	"warehouse-management/database"
+	"warehouse-management/logger"
 	"warehouse-management/routes"
 
 	"github.com/gin-contrib/cors"
@@ -27,9 +28,15 @@ var assets embed.FS
 
 // App struct
 type App struct {
-	ctx    context.Context
-	router *gin.Engine
-	cfg    *config.Config
+	ctx        context.Context
+	router     *gin.Engine
+	cfg        *config.Config
+	fileLogger *logger.FileLogger // Wails file logger
+}
+
+// GetLogger returns the file logger instance
+func (a *App) GetLogger() *logger.FileLogger {
+	return a.fileLogger
 }
 
 // NewApp creates a new App application struct
@@ -94,9 +101,16 @@ func (a *App) OnStartup(ctx context.Context) {
 		if port == "" {
 			port = "8080"
 		}
+		if a.fileLogger != nil {
+			a.fileLogger.Info("API Server starting on http://localhost:" + port)
+			a.fileLogger.Info("API endpoints available at http://localhost:" + port + "/api")
+		}
 		log.Printf("API Server starting on http://localhost:%s...", port)
 		log.Printf("API endpoints available at http://localhost:%s/api", port)
 		if err := a.router.Run(":" + port); err != nil {
+			if a.fileLogger != nil {
+				a.fileLogger.Error("Failed to start API server: " + err.Error())
+			}
 			log.Printf("Failed to start API server: %v", err)
 		}
 	}()
@@ -105,26 +119,66 @@ func (a *App) OnStartup(ctx context.Context) {
 // OnDomReady is called when the frontend is ready
 func (a *App) OnDomReady(ctx context.Context) {
 	// Frontend is ready
+	if a.fileLogger != nil {
+		a.fileLogger.Info("Frontend DOM ready")
+	}
 }
 
 // OnBeforeClose is called when the app is about to quit
 func (a *App) OnBeforeClose(ctx context.Context) (prevent bool) {
+	if a.fileLogger != nil {
+		a.fileLogger.Info("Application closing...")
+	}
 	return false
 }
 
 // OnShutdown is called when the app is shutting down
 func (a *App) OnShutdown(ctx context.Context) {
 	// Cleanup if needed
+	if a.fileLogger != nil {
+		a.fileLogger.Info("Application shutdown")
+	}
 }
 
 // RunWailsApp runs the Wails application
 func RunWailsApp() {
-	// Setup logging first
+	// Setup file logger
+	// Determine log directory - use logs folder relative to executable or backend folder
+	logDir := "logs"
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		// If running from build/bin, use logs in build directory
+		if filepath.Base(exeDir) == "bin" {
+			logDir = filepath.Join(exeDir, "..", "logs")
+		} else {
+			logDir = filepath.Join(exeDir, "logs")
+		}
+	}
+
+	// Create file logger with Debug level (will show all logs)
+	// Wails logger levels: TRACE=1, DEBUG=2, INFO=3, WARNING=4, ERROR=5
+	var fileLogger *logger.FileLogger
+	fileLogger, err := logger.NewFileLogger(logDir, 2) // DEBUG level = 2
+	if err != nil {
+		log.Printf("Failed to create file logger: %v, using console only", err)
+		fileLogger = nil
+	} else {
+		defer fileLogger.Close()
+		fileLogger.Info("Starting Wails application...")
+		fileLogger.Info("Log directory: " + logDir)
+	}
+
+	// Setup standard logging
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("Starting Wails application...")
 
 	// Create an instance of the app structure
 	app := NewApp()
+
+	// Store logger in app if needed
+	if fileLogger != nil {
+		app.fileLogger = fileLogger
+	}
 
 	// Resolve frontend dist path
 	// Try to find frontend/dist relative to backend folder
@@ -207,10 +261,15 @@ func RunWailsApp() {
 		OnDomReady:       app.OnDomReady,
 		OnBeforeClose:    app.OnBeforeClose,
 		OnShutdown:       app.OnShutdown,
+		Logger:           fileLogger, // Use file logger for Wails
+		LogLevel:         2,          // DEBUG level = 2
 	}
 
+	if fileLogger != nil {
+		fileLogger.Info("Running Wails application...")
+	}
 	log.Println("Running Wails application...")
-	err := wails.Run(appOptions)
+	err = wails.Run(appOptions)
 
 	if err != nil {
 		log.Printf("Fatal error starting Wails application: %v", err)
