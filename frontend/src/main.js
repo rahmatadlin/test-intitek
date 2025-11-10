@@ -3,6 +3,12 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 import "./assets/styles.css";
+import logger from "./utils/logger";
+
+// Initialize logger untuk Tauri
+if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+  logger.init().catch(console.error);
+}
 
 const app = createApp(App);
 

@@ -8,45 +8,27 @@ Before you begin, make sure you have:
 
 - [ ] Go 1.21+ installed (`go version`)
 - [ ] Node.js 18+ installed (`node --version`)
-- [ ] MySQL 8.0+ installed and running
 - [ ] Git installed
+
+**Catatan**: Tidak perlu install database server terpisah karena menggunakan SQLite (file-based database).
 
 ## Step-by-Step Setup
 
-### 1. Database Setup (5 minutes)
-
-Open MySQL and create the database:
-
-```sql
-CREATE DATABASE warehouse_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-Verify it was created:
-
-```sql
-SHOW DATABASES;
-```
-
-### 2. Backend Setup (5 minutes)
+### 1. Backend Setup (5 minutes)
 
 ```bash
 # Navigate to backend
 cd backend
 
-# Copy environment file
-cp env.example .env
-
-# Edit .env with your MySQL credentials
-# nano .env (Linux/Mac) or notepad .env (Windows)
-# Update DB_PASSWORD with your MySQL password
-
 # Install dependencies
 go mod tidy
 go mod download
 
-# Run the backend
+# Run the backend (database akan dibuat otomatis)
 go run main.go
 ```
+
+**Catatan**: SQLite database file (`warehouse.db`) akan dibuat otomatis di folder backend saat aplikasi pertama kali dijalankan. Tidak perlu setup database manual.
 
 You should see:
 
@@ -57,7 +39,7 @@ Default admin user created (username: admin, password: admin123)
 Server starting on port 8080...
 ```
 
-### 3. Frontend Setup (5 minutes)
+### 2. Frontend Setup (5 minutes)
 
 Open a **NEW terminal** window:
 
@@ -80,7 +62,7 @@ VITE v5.x.x  ready in xxx ms
 ➜  Local:   http://localhost:5173/
 ```
 
-### 4. Access the Application
+### 3. Access the Application
 
 1. Open your browser
 2. Go to: http://localhost:5173
@@ -119,9 +101,10 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 **Solutions**:
 
-1. Verify MySQL is running: `mysql --version`
-2. Check MySQL credentials in `.env`
-3. Verify database exists: `SHOW DATABASES;`
+1. Check if database file path is writable
+2. Verify `.env` file has correct `DB_PATH` (default: `warehouse.db`)
+3. Check file permissions on database directory
+4. Try deleting `warehouse.db` and let it recreate automatically
 
 ### Frontend shows connection error
 
@@ -184,12 +167,16 @@ air
 
 To reset the database:
 
-```sql
-DROP DATABASE warehouse_db;
-CREATE DATABASE warehouse_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```bash
+# Hapus file database SQLite
+rm warehouse.db  # Linux/Mac
+del warehouse.db  # Windows
+
+# Restart backend untuk membuat database baru
+go run main.go
 ```
 
-Then restart the backend to run migrations again.
+Database akan dibuat ulang otomatis dengan schema yang benar.
 
 ### API Testing
 

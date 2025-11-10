@@ -1,6 +1,11 @@
 # Environment variables
 .env
 
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
 # Binaries
 warehouse-api
 *.exe

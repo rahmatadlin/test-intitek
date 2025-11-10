@@ -23,12 +23,13 @@ func main() {
 	router := gin.Default()
 
 	// CORS middleware
+	// Allow all origins for development (Tauri apps use custom protocols)
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:8080"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
+		AllowCredentials: false, // Set to false when using wildcard origin
 	}))
 
 	// Setup routes
@@ -37,7 +38,7 @@ func main() {
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Warehouse Management API is running",
 		})
 	})
@@ -48,4 +49,3 @@ func main() {
 		log.Fatal("Failed to start server:", err)
 	}
 }
-

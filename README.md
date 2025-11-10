@@ -57,7 +57,7 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 - **Language**: Go 1.21+
 - **Framework**: Gin (HTTP web framework)
 - **ORM**: GORM
-- **Database**: MySQL
+- **Database**: SQLite
 - **Authentication**: JWT (golang-jwt/jwt)
 - **Barcode**: boombuler/barcode
 
@@ -70,14 +70,21 @@ A full-stack warehouse management system built with Vue.js, Golang, and MySQL. T
 - **Routing**: Vue Router
 - **Charts**: Chart.js 4
 
+### Desktop App
+
+- **Desktop Framework**: Tauri 2.0
+- **Platform**: Windows, macOS, Linux
+
 ## 📋 Prerequisites
 
 Before running this application, ensure you have:
 
 - **Go** 1.21 or higher ([Download](https://golang.org/dl/))
 - **Node.js** 18.x or higher ([Download](https://nodejs.org/))
-- **MySQL** 8.0 or higher ([Download](https://dev.mysql.com/downloads/))
 - **Git** (for cloning the repository)
+
+**Untuk Desktop App (Tauri):**
+- **Rust** 1.70 or higher ([Download](https://www.rust-lang.org/tools/install))
 
 ## 🚀 Getting Started
 
@@ -88,15 +95,7 @@ git clone <repository-url>
 cd test-intitek
 ```
 
-### 2. Database Setup
-
-Create a MySQL database:
-
-```sql
-CREATE DATABASE warehouse_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-### 3. Backend Setup
+### 2. Backend Setup
 
 Navigate to the backend directory:
 
@@ -104,24 +103,16 @@ Navigate to the backend directory:
 cd backend
 ```
 
-Create a `.env` file (copy from `env.example`):
+Create a `.env` file (optional, SQLite akan menggunakan default jika tidak ada):
 
 ```bash
-cp env.example .env
-```
-
-Edit `.env` with your MySQL credentials:
-
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=warehouse_db
-
+# .env file (optional)
+DB_PATH=warehouse.db
 JWT_SECRET=your-secret-key-change-this-in-production
 PORT=8080
 ```
+
+**Catatan**: SQLite tidak memerlukan setup database terpisah. File database akan dibuat otomatis saat aplikasi pertama kali dijalankan.
 
 Install Go dependencies:
 
@@ -167,12 +158,21 @@ The frontend will start on `http://localhost:5173`
 
 ### 5. Access the Application
 
+**Web Application:**
 Open your browser and visit: `http://localhost:5173`
+
+**Desktop Application (Tauri):**
+```bash
+cd frontend
+npm run tauri:dev
+```
 
 Login with the default credentials:
 
 - **Username**: `admin`
 - **Password**: `admin123`
+
+> **Note**: Untuk desktop app, pastikan backend server sudah berjalan di `http://localhost:8080` sebelum menjalankan Tauri.
 
 ## 📡 API Documentation
 
@@ -629,7 +629,7 @@ go build -o warehouse-api main.go
 ./warehouse-api
 ```
 
-### Frontend
+### Frontend (Web)
 
 ```bash
 cd frontend
@@ -637,6 +637,20 @@ npm run build
 ```
 
 The built files will be in the `frontend/dist` directory. Serve them using any static file server.
+
+### Desktop App (Tauri)
+
+```bash
+cd frontend
+npm run tauri:build
+```
+
+File hasil build akan berada di `frontend/src-tauri/target/release/`:
+- **Windows**: `.exe` atau `.msi` installer
+- **macOS**: `.app` atau `.dmg`
+- **Linux**: executable atau `.deb`/`.AppImage`
+
+> **Note**: Pastikan Rust sudah terinstall sebelum build desktop app. Lihat [TAURI_SETUP.md](frontend/src-tauri/TAURI_SETUP.md) untuk informasi lebih lanjut.
 
 ## 📝 Environment Variables
 

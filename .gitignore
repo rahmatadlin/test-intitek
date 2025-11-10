@@ -11,6 +11,11 @@ frontend/dist/
 frontend/.env
 frontend/.env.local
 
+# Tauri
+frontend/src-tauri/target/
+frontend/src-tauri/Cargo.lock
+frontend/src-tauri/logs/
+
 # IDEs
 .vscode/
 .idea/
