@@ -5,6 +5,12 @@ logs/
 # Environment variables
 .env
 
+# Database (SQLite)
+data/
+*.db
+*.db-shm
+*.db-wal
+
 # Build output
 build/
 frontend-dist/

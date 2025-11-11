@@ -49,16 +49,15 @@ func NewApp() *App {
 	if err := database.ConnectDatabase(cfg); err != nil {
 		log.Printf("ERROR: Failed to connect to database: %v", err)
 		log.Printf("Please check:")
-		log.Printf("  1. MySQL server is running")
-		log.Printf("  2. Database '%s' exists", cfg.DBName)
-		log.Printf("  3. Credentials in .env file are correct")
-		log.Printf("  4. DB_HOST=%s, DB_PORT=%s, DB_USER=%s", cfg.DBHost, cfg.DBPort, cfg.DBUser)
+		log.Printf("  1. Database directory is writable")
+		log.Printf("  2. Database path: %s", cfg.DBPath)
+		log.Printf("  3. Check file permissions")
 		// Return error but don't fatal - let Wails start and show error in UI
 		// Database operations will fail but at least app starts
 		log.Printf("Application will start but database features will not work")
 	} else {
 		log.Printf("Database connected successfully")
-		log.Printf("Database: %s@%s:%s/%s", cfg.DBUser, cfg.DBHost, cfg.DBPort, cfg.DBName)
+		log.Printf("Database path: %s", cfg.DBPath)
 	}
 
 	// Initialize Gin router

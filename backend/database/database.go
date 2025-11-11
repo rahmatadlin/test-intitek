@@ -3,27 +3,36 @@ package database
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"warehouse-management/config"
 	"warehouse-management/models"
 
-	"gorm.io/driver/mysql"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
-// ConnectDatabase establishes a connection to the MySQL database
+// ConnectDatabase establishes a connection to the SQLite database
 func ConnectDatabase(cfg *config.Config) error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBName,
-	)
+	// Get database path
+	dbPath := cfg.DBPath
+	if dbPath == "" {
+		// Default to data folder relative to executable or current directory
+		dbPath = "data/warehouse.db"
+	}
+
+	// Create data directory if it doesn't exist
+	dbDir := filepath.Dir(dbPath)
+	if dbDir != "." && dbDir != "" {
+		if err := os.MkdirAll(dbDir, 0755); err != nil {
+			return fmt.Errorf("failed to create database directory: %v", err)
+		}
+	}
 
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %v", err)
 	}

@@ -9,13 +9,9 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	JWTSecret  string
-	Port       string
+	DBPath    string // SQLite database file path
+	JWTSecret string
+	Port      string
 }
 
 func LoadConfig() *Config {
@@ -29,7 +25,7 @@ func LoadConfig() *Config {
 		"../../.env",
 		"../../../.env",
 	}
-	
+
 	// Also try relative to executable
 	if exePath, err := os.Executable(); err == nil {
 		exeDir := filepath.Dir(exePath)
@@ -40,7 +36,7 @@ func LoadConfig() *Config {
 			filepath.Join(exeDir, "..", "..", "..", ".env"),
 		)
 	}
-	
+
 	// Try each path
 	loaded := false
 	for _, envPath := range envPaths {
@@ -50,20 +46,34 @@ func LoadConfig() *Config {
 			break
 		}
 	}
-	
+
 	if !loaded {
 		log.Println("No .env file found in any location, using environment variables")
 		log.Println("Tried paths:", envPaths)
 	}
 
+	// Get DB path - try multiple locations for production build
+	dbPath := getEnv("DB_PATH", "")
+	if dbPath == "" {
+		// Try to determine path relative to executable
+		if exePath, err := os.Executable(); err == nil {
+			exeDir := filepath.Dir(exePath)
+			// If running from build/bin, use data in build directory
+			if filepath.Base(exeDir) == "bin" {
+				dbPath = filepath.Join(exeDir, "..", "data", "warehouse.db")
+			} else {
+				dbPath = filepath.Join(exeDir, "data", "warehouse.db")
+			}
+		} else {
+			// Fallback to current directory
+			dbPath = "data/warehouse.db"
+		}
+	}
+
 	return &Config{
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "3306"),
-		DBUser:     getEnv("DB_USER", "root"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", "warehouse_db"),
-		JWTSecret:  getEnv("JWT_SECRET", "default-secret-key"),
-		Port:       getEnv("PORT", "8080"),
+		DBPath:    dbPath,
+		JWTSecret: getEnv("JWT_SECRET", "default-secret-key"),
+		Port:      getEnv("PORT", "8080"),
 	}
 }
 
@@ -73,4 +83,3 @@ func getEnv(key, defaultValue string) string {
 	}
 	return defaultValue
 }
-
